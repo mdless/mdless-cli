@@ -10,17 +10,24 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 
+function exit(): never {
+  console.log("\nAborted.");
+  process.exit(0);
+}
+
 const cwd = process.cwd();
 const claudeDir = join(cwd, ".claude");
 
 if (!existsSync(claudeDir)) {
   const shouldCreate = await confirm({
     message: "No .claude folder found. Create one?",
+  }).catch((e: Error) => {
+    if (e.name === "ExitPromptError") exit();
+    throw e;
   });
 
   if (!shouldCreate) {
-    console.log("Aborted.");
-    process.exit(0);
+    exit();
   }
 
   mkdirSync(claudeDir);
@@ -45,6 +52,9 @@ const selected = await checkbox({
     value: skill,
     checked: isInstalled(skill),
   })),
+}).catch((e: Error) => {
+  if (e.name === "ExitPromptError") exit();
+  throw e;
 });
 
 const installed: string[] = [];
