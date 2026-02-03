@@ -16,7 +16,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@clack/prompts": "^0.7.0",
+    "@inquirer/prompts": "^8.2.0",
     "tsx": "^4.7.0"
   },
   "devDependencies": {
