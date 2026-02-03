@@ -13,7 +13,7 @@ const result = spawnSync(
   [
     "--import",
     tsxPath,
-    join(__dirname, "main.ts"),
+    join(__dirname, "src", "index.ts"),
     ...process.argv.slice(2),
   ],
   { stdio: "inherit" }
