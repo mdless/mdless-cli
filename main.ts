@@ -1,5 +1,6 @@
 #!/usr/bin/env tsx
 import { checkbox, confirm } from "@inquirer/prompts";
+import { Command } from "commander";
 import {
   cpSync,
   existsSync,
@@ -9,17 +10,11 @@ import {
   statSync,
 } from "node:fs";
 import { join } from "node:path";
+import packageJson from "./package.json" with { type: "json" };
 
 function exit(): never {
   console.log("\nAborted.");
   process.exit(0);
-}
-
-function showHelp(): void {
-  console.log(`Usage: mdless <command>
-
-Commands:
-  skills    Install or remove Claude Code skills`);
 }
 
 async function skillsCommand(): Promise<void> {
@@ -100,19 +95,14 @@ async function skillsCommand(): Promise<void> {
   }
 }
 
-const [command] = process.argv.slice(2);
+const program = new Command()
+  .name("mdless")
+  .description("CLI tools for Claude Code projects")
+  .version(packageJson.version);
 
-switch (command) {
-  case "skills":
-    await skillsCommand();
-    break;
-  case undefined:
-  case "-h":
-  case "--help":
-    showHelp();
-    break;
-  default:
-    console.error(`Unknown command: ${command}`);
-    showHelp();
-    process.exit(1);
-}
+program
+  .command("skills")
+  .description("Install or remove Claude Code skills")
+  .action(skillsCommand);
+
+program.parse();
