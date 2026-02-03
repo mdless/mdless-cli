@@ -1,13 +1,15 @@
 {
-  "name": "mdless-cli",
-  "version": "1.0.0",
+  "name": "@mdless/cli",
+  "version": "1.0.2",
   "description": "Interactive skill selector CLI",
   "type": "module",
   "bin": {
-    "mdless": "./main.ts"
+    "mdless": "bin.mjs"
   },
   "files": [
-    "main.ts"
+    "bin.mjs",
+    "main.ts",
+    "skills/"
   ],
   "keywords": [
     "cli",
