@@ -1,6 +1,6 @@
 {
   "name": "@mdless/cli",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Mind less, ship more. Share Claude Code skills across projects and teams.",
   "type": "module",
   "bin": {
