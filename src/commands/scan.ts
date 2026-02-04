@@ -6,20 +6,15 @@ import { clearLine, formatDuration, truncatePath } from "../utils.js";
 
 const EXCLUSIONS = new Set([
   "node_modules",
-  ".git",
   "dist",
   "build",
-  ".Trash",
   "Library",
   "Applications",
-  ".npm",
-  ".cache",
-  ".local",
   "__pycache__",
   "venv",
-  ".venv",
   "worktrees",
   "workspaces",
+  "tmp",
 ]);
 
 function* walkDirectories(dir: string): Generator<string> {
@@ -31,7 +26,7 @@ function* walkDirectories(dir: string): Generator<string> {
   }
 
   for (const entry of entries) {
-    if (EXCLUSIONS.has(entry)) continue;
+    if (entry.startsWith(".") || EXCLUSIONS.has(entry)) continue;
 
     const fullPath = join(dir, entry);
     let stat;
@@ -69,7 +64,7 @@ export async function scanCommand(): Promise<void> {
     if (scanned % 100 === 0) {
       clearLine();
       process.stdout.write(
-        `  ${scanned.toLocaleString()} checked, ${found.length} found | ${truncatePath(dir)}`
+        `  ${scanned.toLocaleString()} checked, ${found.length} found | ${truncatePath(dir)}`,
       );
     }
   }
