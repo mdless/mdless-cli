@@ -2,6 +2,7 @@
 import { Command } from "commander";
 import { select } from "@inquirer/prompts";
 import packageJson from "../package.json" with { type: "json" };
+import { scanCommand } from "./commands/scan.js";
 import { skillsCommand } from "./commands/skills.js";
 import { withExitHandler } from "./utils.js";
 
@@ -19,6 +20,11 @@ const commands = [
     name: "skills",
     description: "Share Claude Code skills across projects and teams",
     action: skillsCommand,
+  },
+  {
+    name: "scan",
+    description: "Find Claude workspaces on your computer",
+    action: scanCommand,
   },
 ] as const;
 
