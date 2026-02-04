@@ -1,5 +1,7 @@
 # @mdless/cli
 
+![mdless cli screenshot](https://raw.githubusercontent.com/mdless/mdless-cli/main/assets/screenshot.png)
+
 **Mind less, ship more.**
 
 You know that feeling when you craft the perfect Claude Code skill, and then you need it in another project? Or when your teammate asks "how did you make Claude do that?"
