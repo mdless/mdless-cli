@@ -82,7 +82,7 @@ for (const cmd of commands) {
 
 program
   .command("agent <name>")
-  .description("Run a single agent loop (curator | developer | reviewer)")
+  .description("Run a single agent on repeat — reads the prompt from .mdless/agents/<name>.md")
   .action(agentCommand);
 
 // If no arguments provided, show interactive mode

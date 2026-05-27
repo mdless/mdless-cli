@@ -22,7 +22,7 @@ const LABELS: Array<{ name: string; color: string; description: string }> = [
   {
     name: "mdless/approved",
     color: "5319E7",
-    description: "Approved by the mdless reviewer agent",
+    description: "Approved via mdless",
   },
 ];
 
