@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, createWriteStream } from "node:fs";
 import { join } from "node:path";
+import { playStartupSound } from "../playStartupSound.js";
 
 const SLEEP_SECONDS = 60;
 
@@ -226,6 +227,8 @@ function sleep(seconds: number): Promise<void> {
 }
 
 export async function agentCommand(name: string): Promise<void> {
+  playStartupSound();
+
   const prompt = loadPrompt(name);
   const sleepSeconds = Number(process.env.MDLESS_SLEEP) || SLEEP_SECONDS;
 
