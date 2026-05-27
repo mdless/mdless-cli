@@ -42,9 +42,9 @@ gh issue view <N>
 | Scope       | Any changes unrelated to the issue?                                          |
 | Bugs        | Obvious off-by-one, null derefs, missed error paths, broken types?           |
 | Tests       | If similar code has tests, are there new/updated tests here?                 |
-| Guidelines  | Read `CLAUDE.md` (and any nested ones). Flag clear violations of its rules.  |
+| Guidelines  | Read `AGENTS.md` (and any nested ones). Flag clear violations of its rules.  |
 
-Do not review subjective style. Only flag what's explicitly documented in `CLAUDE.md` or what's an actual bug.
+Do not review subjective style. Only flag what's explicitly documented in `AGENTS.md` or what's an actual bug.
 
 ### Step 4 — Decide
 
