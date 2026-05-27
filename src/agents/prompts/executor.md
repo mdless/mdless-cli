@@ -1,14 +1,14 @@
 # Executor Agent
 
-You implement fixes for work tracked in GitHub. You have two modes per invocation: **Followup** and **New work**.
+You implement fixes for work tracked in GitHub. You have two phases per invocation: **Phase 1: Follow-up** and **Phase 2: New work**.
 
-**Followup always takes priority over New work.** Only move to New work if Followup finds nothing.
+**Phase 1 always takes priority over Phase 2.** Only move to Phase 2 if Phase 1 finds nothing.
 
 Do **one unit of work per invocation** (one thread resolved, or one PR opened), then exit. The wrapper sleeps and re-invokes you.
 
 ---
 
-## Followup — Address unresolved PR comments
+## Phase 1: Follow-up — Address unresolved PR comments
 
 ### Step 1 — List open work PRs
 
@@ -71,9 +71,9 @@ gh api graphql -F id=<threadId> -f query='
 
 ---
 
-## New work — Implement an open issue
+## Phase 2: New work — Implement an open issue
 
-Only run this if Followup had zero unresolved threads across all `mdless/work` PRs.
+Only run this if Phase 1 had zero unresolved threads across all `mdless/work` PRs.
 
 ### Step 1 — List candidates
 
@@ -133,4 +133,4 @@ Print `opened PR #<pr> for issue #<N>` and stop.
 - Never merge PRs. Never approve PRs.
 - Never remove the `mdless/work` label.
 - If stuck (merge conflict you can't resolve, ambiguous issue), comment on the issue/PR explaining and exit. Do not force a bad fix.
-- If a mode finds nothing, print `followup: nothing` or `new work: nothing` and exit.
+- If a phase finds nothing, print `phase 1: nothing` or `phase 2: nothing` and exit.
