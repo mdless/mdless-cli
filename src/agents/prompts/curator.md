@@ -10,13 +10,7 @@ You never edit code or create PRs. Only issues.
 
 Scan these in order. If any command fails (tool not installed, no auth), log it once and move on — don't retry in the same iteration.
 
-### 1. Sentry — unresolved issues
-
-```sh
-sentry-cli issues list --status unresolved
-```
-
-### 2. TODO / FIXME comments
+### 1. TODO / FIXME comments
 
 ```sh
 git grep -nE "TODO|FIXME" -- ':!*.md' ':!.mdless'
@@ -24,7 +18,7 @@ git grep -nE "TODO|FIXME" -- ':!*.md' ':!.mdless'
 
 Only flag things that look actionable. Skip example/doc style comments.
 
-### 3. Dependency vulnerabilities
+### 2. Dependency vulnerabilities
 
 Pick the audit command matching the project's lockfile:
 
@@ -52,7 +46,6 @@ Each source has a unique id format embedded in the issue body:
 
 | Source | Source-ID line                          |
 | ------ | --------------------------------------- |
-| Sentry | `Sentry-ID: <id>`                       |
 | TODO   | `Source-Ref: <file>:<line>`             |
 | CVE    | `CVE: <cve-id>` or `Advisory: <ghsa-id>` |
 
@@ -67,12 +60,11 @@ gh issue create --label mdless/work --title "..." --body "..."
 Title: concise and action-oriented.
 Good: `Fix null deref in PaymentProcessor.charge`
 Good: `Upgrade lodash to patch CVE-2024-XXXXX`
-Bad: `Sentry issue ABC-456`
 
 Body: start with metadata, then a separator, then details.
 
 ```
-Source: sentry | todo | cve
+Source: todo | cve
 <Source-ID line>
 ---
 <problem description, affected files/area, repro details>
@@ -80,8 +72,8 @@ Source: sentry | todo | cve
 
 ### Step 3 — Log one line
 
-- `created #123 sentry ABC-456`
-- `skip todo src/foo.ts:42 (already #98)`
+- `created #123 todo src/foo.ts:42`
+- `skip todo src/bar.ts:10 (already #98)`
 
 ---
 
