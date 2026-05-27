@@ -64,7 +64,6 @@ function autoInstall(cmd: string): boolean {
 function checkPrereqs(): boolean {
   const autoInstallable = ["tmux"];
   const required = ["gh", "claude"];
-  const optional = ["sentry-cli"];
   let ok = true;
 
   for (const cmd of autoInstallable) {
@@ -75,11 +74,6 @@ function checkPrereqs(): boolean {
     if (!which(cmd)) {
       console.error(`✗ Missing required command: ${cmd}`);
       ok = false;
-    }
-  }
-  for (const cmd of optional) {
-    if (!which(cmd)) {
-      console.log(`! Optional command not found: ${cmd} (curator will skip this source)`);
     }
   }
 
