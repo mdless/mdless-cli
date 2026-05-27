@@ -30,6 +30,71 @@ function loadPrompt(name: AgentName): string {
   return readFileSync(promptPath, "utf8");
 }
 
+const DIM = "\x1b[2m";
+const RESET = "\x1b[0m";
+const CYAN = "\x1b[36m";
+const GREEN = "\x1b[32m";
+const RED = "\x1b[31m";
+const YELLOW = "\x1b[33m";
+const BOLD = "\x1b[1m";
+
+function truncate(s: string, n: number): string {
+  const clean = s.replace(/\s+/g, " ").trim();
+  return clean.length > n ? clean.slice(0, n - 1) + "…" : clean;
+}
+
+function summarizeToolInput(name: string, input: any): string {
+  if (!input || typeof input !== "object") return "";
+  switch (name) {
+    case "Bash":
+      return `$ ${truncate(input.command ?? "", 140)}`;
+    case "Read":
+      return input.file_path ?? "";
+    case "Write":
+      return input.file_path ?? "";
+    case "Edit":
+    case "MultiEdit":
+      return input.file_path ?? "";
+    case "Glob":
+      return input.pattern ?? "";
+    case "Grep": {
+      const where = input.path ? ` in ${input.path}` : input.glob ? ` (${input.glob})` : "";
+      return `"${truncate(input.pattern ?? "", 80)}"${where}`;
+    }
+    case "WebFetch":
+    case "WebSearch":
+      return input.url ?? input.query ?? "";
+    case "Task":
+      return truncate(input.description ?? input.prompt ?? "", 120);
+    default: {
+      const first = Object.values(input).find((v) => typeof v === "string");
+      return typeof first === "string" ? truncate(first, 120) : truncate(JSON.stringify(input), 120);
+    }
+  }
+}
+
+function summarizeToolResult(raw: string, isError: boolean): string {
+  if (!raw.trim()) return isError ? "(error, no output)" : "(no output)";
+  const lines = raw.split("\n").map((l) => l.trim()).filter(Boolean);
+  if (lines.length === 0) return "(empty)";
+  const firstLine = lines[0]!;
+
+  if (firstLine.startsWith("{") || firstLine.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return `[${parsed.length} items]`;
+      if (parsed && typeof parsed === "object") {
+        const keys = Object.keys(parsed);
+        if (keys.length === 0) return "{}";
+        return `{${keys.slice(0, 4).join(", ")}${keys.length > 4 ? ", …" : ""}}`;
+      }
+    } catch {}
+  }
+
+  const extra = lines.length > 1 ? ` (+${lines.length - 1} lines)` : "";
+  return truncate(firstLine, 140) + extra;
+}
+
 function formatStreamEvent(line: string): string | null {
   let evt: any;
   try {
@@ -40,19 +105,19 @@ function formatStreamEvent(line: string): string | null {
 
   if (evt.type === "system" && evt.subtype === "init") {
     const tools = Array.isArray(evt.tools) ? evt.tools.length : 0;
-    return `\x1b[2m[init] session ${evt.session_id ?? "?"} • ${tools} tools available\x1b[0m\n`;
+    return `${DIM}[init] session ${(evt.session_id ?? "?").toString().slice(0, 8)} • ${tools} tools${RESET}\n`;
   }
 
   if (evt.type === "assistant" && evt.message?.content) {
     const out: string[] = [];
     for (const block of evt.message.content) {
-      if (block.type === "text" && block.text) {
-        out.push(block.text);
+      if (block.type === "text" && block.text?.trim()) {
+        out.push(`${BOLD}${block.text.trim()}${RESET}`);
       } else if (block.type === "tool_use") {
-        const inputPreview = JSON.stringify(block.input ?? {}).slice(0, 200);
-        out.push(`\x1b[36m▸ ${block.name}\x1b[0m \x1b[2m${inputPreview}\x1b[0m`);
-      } else if (block.type === "thinking" && block.thinking) {
-        out.push(`\x1b[2m[thinking] ${block.thinking.slice(0, 200)}\x1b[0m`);
+        const summary = summarizeToolInput(block.name, block.input);
+        out.push(`${CYAN}▸ ${block.name.padEnd(8)}${RESET} ${summary}`);
+      } else if (block.type === "thinking" && block.thinking?.trim()) {
+        out.push(`${DIM}[thinking] ${truncate(block.thinking, 200)}${RESET}`);
       }
     }
     return out.length ? out.join("\n") + "\n" : null;
@@ -65,11 +130,11 @@ function formatStreamEvent(line: string): string | null {
         const raw = typeof block.content === "string"
           ? block.content
           : Array.isArray(block.content)
-            ? block.content.map((c: any) => c.text ?? "").join("")
+            ? block.content.map((c: any) => c.text ?? "").join("\n")
             : "";
-        const preview = raw.replace(/\s+/g, " ").slice(0, 200);
-        const marker = block.is_error ? "\x1b[31m✗" : "\x1b[32m◂";
-        out.push(`${marker}\x1b[0m \x1b[2m${preview}\x1b[0m`);
+        const summary = summarizeToolResult(raw, !!block.is_error);
+        const marker = block.is_error ? `${RED}  ✗     ${RESET}` : `${GREEN}  ◂     ${RESET}`;
+        out.push(`${marker}${DIM}${summary}${RESET}`);
       }
     }
     return out.length ? out.join("\n") + "\n" : null;
@@ -79,7 +144,8 @@ function formatStreamEvent(line: string): string | null {
     const cost = evt.total_cost_usd != null ? ` • $${evt.total_cost_usd.toFixed(4)}` : "";
     const duration = evt.duration_ms != null ? ` • ${(evt.duration_ms / 1000).toFixed(1)}s` : "";
     const turns = evt.num_turns != null ? ` • ${evt.num_turns} turns` : "";
-    return `\x1b[2m[done] ${evt.subtype ?? "ok"}${turns}${duration}${cost}\x1b[0m\n`;
+    const color = evt.is_error ? YELLOW : DIM;
+    return `${color}[done] ${evt.subtype ?? "ok"}${turns}${duration}${cost}${RESET}\n`;
   }
 
   return null;
