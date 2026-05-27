@@ -2,8 +2,10 @@
 import { Command } from "commander";
 import { select } from "@inquirer/prompts";
 import packageJson from "../package.json" with { type: "json" };
+import { agentCommand } from "./commands/agent.js";
 import { scanCommand } from "./commands/scan.js";
 import { skillsCommand } from "./commands/skills.js";
+import { startCommand } from "./commands/start.js";
 import { withExitHandler } from "./utils.js";
 
 const banner = `
@@ -25,6 +27,11 @@ const commands = [
     name: "scan",
     description: "Find Claude workspaces on your computer",
     action: scanCommand,
+  },
+  {
+    name: "start",
+    description: "Launch watcher/executor/reviewer agents in a tmux session",
+    action: startCommand,
   },
 ] as const;
 
@@ -66,6 +73,11 @@ const program = new Command()
 for (const cmd of commands) {
   program.command(cmd.name).description(cmd.description).action(cmd.action);
 }
+
+program
+  .command("agent <name>")
+  .description("Run a single agent loop (watcher | executor | reviewer)")
+  .action(agentCommand);
 
 // If no arguments provided, show interactive mode
 if (process.argv.length <= 2) {
