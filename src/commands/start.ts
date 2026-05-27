@@ -168,7 +168,7 @@ function startTmux(): void {
 }
 
 function playStartupSound(): void {
-  const audioPath = join(import.meta.dirname!, "..", "..", "assets", "work.mp3");
+  const audioPath = join(import.meta.dirname!, "..", "..", "assets", "ready-to-work.mp3");
   if (!existsSync(audioPath)) return;
 
   const player = platform() === "darwin" ? "afplay" : platform() === "linux" ? "mpg123" : null;
