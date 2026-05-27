@@ -16,7 +16,8 @@ function isAgentName(value: string): value is AgentName {
 }
 
 function timestamp(): string {
-  return new Date().toISOString().replace("T", " ").slice(0, 19);
+  const d = new Date();
+  return d.toTimeString().slice(0, 8);
 }
 
 function loadPrompt(name: AgentName): string {
@@ -36,7 +37,27 @@ const CYAN = "\x1b[36m";
 const GREEN = "\x1b[32m";
 const RED = "\x1b[31m";
 const YELLOW = "\x1b[33m";
+const BLUE = "\x1b[34m";
+const MAGENTA = "\x1b[35m";
+const ITALIC = "\x1b[3m";
 const BOLD = "\x1b[1m";
+
+const TOOL_COLORS: Record<string, string> = {
+  Bash: GREEN,
+  Read: BLUE,
+  Write: YELLOW,
+  Edit: YELLOW,
+  MultiEdit: YELLOW,
+  Glob: MAGENTA,
+  Grep: MAGENTA,
+  WebFetch: CYAN,
+  WebSearch: CYAN,
+  Task: MAGENTA,
+};
+
+function toolColor(name: string): string {
+  return TOOL_COLORS[name] ?? CYAN;
+}
 
 function truncate(s: string, n: number): string {
   const clean = s.replace(/\s+/g, " ").trim();
@@ -95,6 +116,13 @@ function summarizeToolResult(raw: string, isError: boolean): string {
   return truncate(firstLine, 140) + extra;
 }
 
+function indent(text: string, prefix: string): string {
+  return text
+    .split("\n")
+    .map((line) => prefix + line)
+    .join("\n");
+}
+
 function formatStreamEvent(line: string): string | null {
   let evt: any;
   try {
@@ -104,20 +132,22 @@ function formatStreamEvent(line: string): string | null {
   }
 
   if (evt.type === "system" && evt.subtype === "init") {
+    const session = (evt.session_id ?? "?").toString().slice(0, 8);
     const tools = Array.isArray(evt.tools) ? evt.tools.length : 0;
-    return `${DIM}[init] session ${(evt.session_id ?? "?").toString().slice(0, 8)} • ${tools} tools${RESET}\n`;
+    return `${DIM}  session ${session} · ${tools} tools loaded${RESET}\n\n`;
   }
 
   if (evt.type === "assistant" && evt.message?.content) {
     const out: string[] = [];
     for (const block of evt.message.content) {
       if (block.type === "text" && block.text?.trim()) {
-        out.push(`${BOLD}${block.text.trim()}${RESET}`);
+        out.push("\n" + indent(block.text.trim(), "  ") + "\n");
       } else if (block.type === "tool_use") {
         const summary = summarizeToolInput(block.name, block.input);
-        out.push(`${CYAN}▸ ${block.name.padEnd(8)}${RESET} ${summary}`);
+        const color = toolColor(block.name);
+        out.push(`  ${color}▸${RESET} ${color}${block.name.padEnd(9)}${RESET}${summary}`);
       } else if (block.type === "thinking" && block.thinking?.trim()) {
-        out.push(`${DIM}[thinking] ${truncate(block.thinking, 200)}${RESET}`);
+        out.push(`  ${DIM}${ITALIC}~ ${truncate(block.thinking, 200)}${RESET}`);
       }
     }
     return out.length ? out.join("\n") + "\n" : null;
@@ -133,19 +163,21 @@ function formatStreamEvent(line: string): string | null {
             ? block.content.map((c: any) => c.text ?? "").join("\n")
             : "";
         const summary = summarizeToolResult(raw, !!block.is_error);
-        const marker = block.is_error ? `${RED}  ✗     ${RESET}` : `${GREEN}  ◂     ${RESET}`;
-        out.push(`${marker}${DIM}${summary}${RESET}`);
+        const arrow = block.is_error ? `${RED}└─ ✗${RESET}` : `${DIM}└─${RESET}`;
+        out.push(`  ${arrow} ${DIM}${summary}${RESET}`);
       }
     }
     return out.length ? out.join("\n") + "\n" : null;
   }
 
   if (evt.type === "result") {
-    const cost = evt.total_cost_usd != null ? ` • $${evt.total_cost_usd.toFixed(4)}` : "";
-    const duration = evt.duration_ms != null ? ` • ${(evt.duration_ms / 1000).toFixed(1)}s` : "";
-    const turns = evt.num_turns != null ? ` • ${evt.num_turns} turns` : "";
-    const color = evt.is_error ? YELLOW : DIM;
-    return `${color}[done] ${evt.subtype ?? "ok"}${turns}${duration}${cost}${RESET}\n`;
+    const parts: string[] = [];
+    if (evt.num_turns != null) parts.push(`${evt.num_turns} turns`);
+    if (evt.duration_ms != null) parts.push(`${(evt.duration_ms / 1000).toFixed(1)}s`);
+    if (evt.total_cost_usd != null) parts.push(`$${evt.total_cost_usd.toFixed(4)}`);
+    const color = evt.is_error ? YELLOW : GREEN;
+    const mark = evt.is_error ? "✗" : "✓";
+    return `\n  ${color}${mark}${RESET} ${DIM}${parts.join(" · ")}${RESET}\n`;
   }
 
   return null;
@@ -212,23 +244,27 @@ export async function agentCommand(name: string): Promise<void> {
   mkdirSync(logDir, { recursive: true });
   const logStream = createWriteStream(join(logDir, `${name}.log`), { flags: "a" });
 
-  const banner = `\n=== mdless agent: ${name} (sleep ${sleepSeconds}s between loops) ===\n`;
+  const titleColor = toolColor(name) || CYAN;
+  const banner =
+    `\n${titleColor}${BOLD}  mdless · ${name}${RESET}\n` +
+    `${DIM}  ${"─".repeat(40)}${RESET}\n` +
+    `${DIM}  loop every ${sleepSeconds}s · logs in .mdless/logs/${name}.log${RESET}\n`;
   process.stdout.write(banner);
   logStream.write(banner);
 
   process.on("SIGINT", () => {
-    process.stdout.write(`\n[${name}] stopped\n`);
+    process.stdout.write(`\n  ${DIM}${name} stopped${RESET}\n`);
     process.exit(0);
   });
 
   while (true) {
-    const header = `\n--- [${timestamp()}] ${name}: starting iteration ---\n`;
+    const header = `\n${DIM}── ${timestamp()} ─────────────────────────────${RESET}\n`;
     process.stdout.write(header);
     logStream.write(header);
 
     await runClaude(prompt, logStream);
 
-    const footer = `\n--- [${timestamp()}] ${name}: sleeping ${sleepSeconds}s ---\n`;
+    const footer = `${DIM}  sleeping ${sleepSeconds}s…${RESET}\n`;
     process.stdout.write(footer);
     logStream.write(footer);
 
