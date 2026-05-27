@@ -4,7 +4,6 @@ import { select } from "@inquirer/prompts";
 import packageJson from "../package.json" with { type: "json" };
 import { agentCommand } from "./commands/agent.js";
 import { initCommand } from "./commands/init.js";
-import { scanCommand } from "./commands/scan.js";
 import { startCommand } from "./commands/start.js";
 import { withExitHandler } from "./utils.js";
 
@@ -18,11 +17,6 @@ const banner = `
 `;
 
 const commands = [
-  {
-    name: "scan",
-    description: "Find Claude workspaces on your computer",
-    action: scanCommand,
-  },
   {
     name: "init",
     description: "Copy the default agent prompts into .mdless/agents/",
