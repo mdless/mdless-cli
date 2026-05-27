@@ -31,32 +31,45 @@ function loadPrompt(name: AgentName): string {
   return readFileSync(promptPath, "utf8");
 }
 
-const DIM = "\x1b[2m";
 const RESET = "\x1b[0m";
-const CYAN = "\x1b[36m";
-const GREEN = "\x1b[32m";
-const RED = "\x1b[31m";
-const YELLOW = "\x1b[33m";
-const BLUE = "\x1b[34m";
-const MAGENTA = "\x1b[35m";
-const ITALIC = "\x1b[3m";
+const DIM = "\x1b[2m";
 const BOLD = "\x1b[1m";
+const ITALIC = "\x1b[3m";
+
+// Purple palette (256-color, Gemini-inspired)
+const VIOLET = "\x1b[38;5;141m"; // primary
+const LAVENDER = "\x1b[38;5;147m"; // soft accent
+const DEEP_PURPLE = "\x1b[38;5;99m"; // search/grep
+const PINK_PURPLE = "\x1b[38;5;177m"; // writes/edits
+const MAGENTA_PURPLE = "\x1b[38;5;171m"; // task/agent
+const PALE = "\x1b[38;5;153m"; // web
+const SOFT_PINK = "\x1b[38;5;211m"; // errors (still readable)
 
 const TOOL_COLORS: Record<string, string> = {
-  Bash: GREEN,
-  Read: BLUE,
-  Write: YELLOW,
-  Edit: YELLOW,
-  MultiEdit: YELLOW,
-  Glob: MAGENTA,
-  Grep: MAGENTA,
-  WebFetch: CYAN,
-  WebSearch: CYAN,
-  Task: MAGENTA,
+  Bash: VIOLET,
+  Read: LAVENDER,
+  Write: PINK_PURPLE,
+  Edit: PINK_PURPLE,
+  MultiEdit: PINK_PURPLE,
+  Glob: DEEP_PURPLE,
+  Grep: DEEP_PURPLE,
+  WebFetch: PALE,
+  WebSearch: PALE,
+  Task: MAGENTA_PURPLE,
+};
+
+const AGENT_COLORS: Record<string, string> = {
+  watcher: LAVENDER,
+  executor: VIOLET,
+  reviewer: MAGENTA_PURPLE,
 };
 
 function toolColor(name: string): string {
-  return TOOL_COLORS[name] ?? CYAN;
+  return TOOL_COLORS[name] ?? VIOLET;
+}
+
+function agentColor(name: string): string {
+  return AGENT_COLORS[name] ?? VIOLET;
 }
 
 function truncate(s: string, n: number): string {
@@ -163,7 +176,7 @@ function formatStreamEvent(line: string): string | null {
             ? block.content.map((c: any) => c.text ?? "").join("\n")
             : "";
         const summary = summarizeToolResult(raw, !!block.is_error);
-        const arrow = block.is_error ? `${RED}└─ ✗${RESET}` : `${DIM}└─${RESET}`;
+        const arrow = block.is_error ? `${SOFT_PINK}└─ ✗${RESET}` : `${DIM}└─${RESET}`;
         out.push(`  ${arrow} ${DIM}${summary}${RESET}`);
       }
     }
@@ -175,7 +188,7 @@ function formatStreamEvent(line: string): string | null {
     if (evt.num_turns != null) parts.push(`${evt.num_turns} turns`);
     if (evt.duration_ms != null) parts.push(`${(evt.duration_ms / 1000).toFixed(1)}s`);
     if (evt.total_cost_usd != null) parts.push(`$${evt.total_cost_usd.toFixed(4)}`);
-    const color = evt.is_error ? YELLOW : GREEN;
+    const color = evt.is_error ? SOFT_PINK : LAVENDER;
     const mark = evt.is_error ? "✗" : "✓";
     return `\n  ${color}${mark}${RESET} ${DIM}${parts.join(" · ")}${RESET}\n`;
   }
@@ -244,9 +257,9 @@ export async function agentCommand(name: string): Promise<void> {
   mkdirSync(logDir, { recursive: true });
   const logStream = createWriteStream(join(logDir, `${name}.log`), { flags: "a" });
 
-  const titleColor = toolColor(name) || CYAN;
+  const titleColor = agentColor(name);
   const banner =
-    `\n${titleColor}${BOLD}  mdless · ${name}${RESET}\n` +
+    `\n${titleColor}${BOLD}  ✦ mdless · ${name}${RESET}\n` +
     `${DIM}  ${"─".repeat(40)}${RESET}\n` +
     `${DIM}  loop every ${sleepSeconds}s · logs in .mdless/logs/${name}.log${RESET}\n`;
   process.stdout.write(banner);
