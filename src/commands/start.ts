@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, appendFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { platform } from "node:os";
@@ -167,6 +167,16 @@ function startTmux(): void {
   spawnSync("tmux", ["attach", "-t", session], { stdio: "inherit" });
 }
 
+function playStartupSound(): void {
+  const audioPath = join(import.meta.dirname!, "..", "..", "assets", "work.mp3");
+  if (!existsSync(audioPath)) return;
+
+  const player = platform() === "darwin" ? "afplay" : platform() === "linux" ? "mpg123" : null;
+  if (!player || !which(player)) return;
+
+  spawn(player, [audioPath], { stdio: "ignore", detached: true }).unref();
+}
+
 export async function startCommand(): Promise<void> {
   if (!existsSync(join(process.cwd(), ".git"))) {
     console.error("✗ mdless work must be run inside a git repository.");
@@ -182,5 +192,6 @@ export async function startCommand(): Promise<void> {
   mkdirSync(join(process.cwd(), ".mdless", "logs"), { recursive: true });
   mkdirSync(join(process.cwd(), ".mdless", "worktrees"), { recursive: true });
 
+  playStartupSound();
   startTmux();
 }

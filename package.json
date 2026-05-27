@@ -9,7 +9,8 @@
   "files": [
     "bin.mjs",
     "src/",
-    "skills/"
+    "skills/",
+    "assets/"
   ],
   "keywords": [
     "cli",
