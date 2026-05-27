@@ -8,6 +8,9 @@ import {
 } from "node:fs";
 import { basename, join } from "node:path";
 import { platform } from "node:os";
+import { confirm } from "@inquirer/prompts";
+import { initCommand } from "./init.js";
+import { withExitHandler } from "../utils.js";
 
 const SESSION_PREFIX = "mdless";
 const LABELS: Array<{ name: string; color: string; description: string }> = [
@@ -202,12 +205,24 @@ export async function startCommand(): Promise<void> {
     process.exit(1);
   }
 
-  const agents = discoverAgents();
+  let agents = discoverAgents();
   if (agents.length === 0) {
-    console.error(
-      "✗ no agent prompts found in .mdless/agents/\n  run `mdless init` to create the default prompts.",
+    console.log("! no agent prompts found in .mdless/agents/");
+    const shouldInit = await withExitHandler(
+      confirm({
+        message: "Run `mdless init` to copy the default prompts?",
+        default: true,
+      }),
     );
-    process.exit(1);
+    if (!shouldInit) {
+      process.exit(1);
+    }
+    await initCommand();
+    agents = discoverAgents();
+    if (agents.length === 0) {
+      console.error("✗ init ran but no prompts were found. Aborting.");
+      process.exit(1);
+    }
   }
 
   if (!checkPrereqs()) {
