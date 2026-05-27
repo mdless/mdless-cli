@@ -1,33 +1,27 @@
 import { spawn } from "node:child_process";
-import { mkdirSync, readFileSync, createWriteStream } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, createWriteStream } from "node:fs";
 import { join } from "node:path";
 
-const AGENTS = ["watcher", "executor", "reviewer"] as const;
-export type AgentName = (typeof AGENTS)[number];
-
-const DEFAULT_SLEEP_SECONDS: Record<AgentName, number> = {
+const DEFAULT_SLEEP_SECONDS: Record<string, number> = {
   watcher: 300,
   executor: 60,
   reviewer: 120,
 };
-
-function isAgentName(value: string): value is AgentName {
-  return (AGENTS as readonly string[]).includes(value);
-}
+const FALLBACK_SLEEP_SECONDS = 60;
 
 function timestamp(): string {
   const d = new Date();
   return d.toTimeString().slice(0, 8);
 }
 
-function loadPrompt(name: AgentName): string {
-  const promptPath = join(
-    import.meta.dirname!,
-    "..",
-    "agents",
-    "prompts",
-    `${name}.md`,
-  );
+function loadPrompt(name: string): string {
+  const promptPath = join(process.cwd(), ".mdless", "agents", `${name}.md`);
+  if (!existsSync(promptPath)) {
+    console.error(
+      `✗ no prompt found at ${promptPath}\n  run \`mdless init\` to create the default prompts.`,
+    );
+    process.exit(1);
+  }
   return readFileSync(promptPath, "utf8");
 }
 
@@ -245,13 +239,11 @@ function sleep(seconds: number): Promise<void> {
 }
 
 export async function agentCommand(name: string): Promise<void> {
-  if (!isAgentName(name)) {
-    console.error(`Unknown agent: ${name}. Expected one of: ${AGENTS.join(", ")}`);
-    process.exit(1);
-  }
-
   const prompt = loadPrompt(name);
-  const sleepSeconds = Number(process.env.MDLESS_SLEEP) || DEFAULT_SLEEP_SECONDS[name];
+  const sleepSeconds =
+    Number(process.env.MDLESS_SLEEP) ||
+    DEFAULT_SLEEP_SECONDS[name] ||
+    FALLBACK_SLEEP_SECONDS;
 
   const logDir = join(process.cwd(), ".mdless", "logs");
   mkdirSync(logDir, { recursive: true });

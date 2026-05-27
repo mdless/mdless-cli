@@ -1,3 +1,4 @@
 node_modules/
 *.tgz
-.mdless/
+.mdless/worktrees/
+.mdless/logs/

@@ -3,6 +3,7 @@ import { Command } from "commander";
 import { select } from "@inquirer/prompts";
 import packageJson from "../package.json" with { type: "json" };
 import { agentCommand } from "./commands/agent.js";
+import { initCommand } from "./commands/init.js";
 import { scanCommand } from "./commands/scan.js";
 import { skillsCommand } from "./commands/skills.js";
 import { startCommand } from "./commands/start.js";
@@ -29,8 +30,13 @@ const commands = [
     action: scanCommand,
   },
   {
+    name: "init",
+    description: "Copy the default agent prompts into .mdless/agents/",
+    action: initCommand,
+  },
+  {
     name: "work",
-    description: "Launch watcher/executor/reviewer agents in a tmux session",
+    description: "Launch the agents in .mdless/agents/ in a tmux session",
     action: startCommand,
   },
 ] as const;

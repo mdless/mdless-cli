@@ -1,5 +1,11 @@
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, appendFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  appendFileSync,
+} from "node:fs";
 import { basename, join } from "node:path";
 import { platform } from "node:os";
 
@@ -109,17 +115,18 @@ function ensureLabels(): void {
   }
 }
 
+const GITIGNORE_ENTRIES = [".mdless/worktrees/", ".mdless/logs/"];
+
 function ensureGitignore(): void {
   const gitignore = join(process.cwd(), ".gitignore");
-  const entry = ".mdless/";
-  if (!existsSync(gitignore)) {
-    appendFileSync(gitignore, `${entry}\n`);
-    console.log(`✓ created .gitignore with ${entry}`);
-    return;
-  }
-  const content = readFileSync(gitignore, "utf8");
-  if (!content.split("\n").some((line) => line.trim() === entry || line.trim() === ".mdless")) {
-    appendFileSync(gitignore, `${content.endsWith("\n") ? "" : "\n"}${entry}\n`);
+  const existing = existsSync(gitignore) ? readFileSync(gitignore, "utf8") : "";
+  const lines = new Set(existing.split("\n").map((l) => l.trim()));
+  const missing = GITIGNORE_ENTRIES.filter((e) => !lines.has(e));
+  if (missing.length === 0) return;
+
+  const prefix = !existing || existing.endsWith("\n") ? "" : "\n";
+  appendFileSync(gitignore, prefix + missing.map((e) => `${e}\n`).join(""));
+  for (const entry of missing) {
     console.log(`✓ added ${entry} to .gitignore`);
   }
 }
@@ -133,7 +140,16 @@ function tmuxHasSession(name: string): boolean {
   return result.status === 0;
 }
 
-function startTmux(): void {
+function discoverAgents(): string[] {
+  const agentsDir = join(process.cwd(), ".mdless", "agents");
+  if (!existsSync(agentsDir)) return [];
+  return readdirSync(agentsDir)
+    .filter((f) => f.endsWith(".md"))
+    .map((f) => f.slice(0, -3))
+    .sort();
+}
+
+function startTmux(agents: string[]): void {
   const session = sessionName();
   const cwd = process.cwd();
 
@@ -143,16 +159,17 @@ function startTmux(): void {
     return;
   }
 
+  const [first, ...rest] = agents;
   const cmds: string[][] = [
     ["new-session", "-d", "-s", session, "-n", "agents", "-c", cwd],
     ["set-option", "-t", session, "mouse", "on"],
-    ["send-keys", "-t", session, "mdless agent watcher", "C-m"],
-    ["split-window", "-h", "-t", session, "-c", cwd],
-    ["send-keys", "-t", session, "mdless agent executor", "C-m"],
-    ["split-window", "-h", "-t", session, "-c", cwd],
-    ["send-keys", "-t", session, "mdless agent reviewer", "C-m"],
-    ["select-layout", "-t", session, "even-horizontal"],
+    ["send-keys", "-t", session, `mdless agent ${first}`, "C-m"],
   ];
+  for (const name of rest) {
+    cmds.push(["split-window", "-h", "-t", session, "-c", cwd]);
+    cmds.push(["send-keys", "-t", session, `mdless agent ${name}`, "C-m"]);
+  }
+  cmds.push(["select-layout", "-t", session, "even-horizontal"]);
 
   for (const args of cmds) {
     const result = spawnSync("tmux", args, { stdio: "inherit" });
@@ -162,7 +179,9 @@ function startTmux(): void {
     }
   }
 
-  console.log(`\n✓ tmux session ${session} started with 3 agents`);
+  console.log(
+    `\n✓ tmux session ${session} started with ${agents.length} agent${agents.length === 1 ? "" : "s"}: ${agents.join(", ")}`,
+  );
   console.log(`  Attaching... (detach with Ctrl-b d, kill with: tmux kill-session -t ${session})\n`);
   spawnSync("tmux", ["attach", "-t", session], { stdio: "inherit" });
 }
@@ -183,6 +202,14 @@ export async function startCommand(): Promise<void> {
     process.exit(1);
   }
 
+  const agents = discoverAgents();
+  if (agents.length === 0) {
+    console.error(
+      "✗ no agent prompts found in .mdless/agents/\n  run `mdless init` to create the default prompts.",
+    );
+    process.exit(1);
+  }
+
   if (!checkPrereqs()) {
     process.exit(1);
   }
@@ -193,5 +220,5 @@ export async function startCommand(): Promise<void> {
   mkdirSync(join(process.cwd(), ".mdless", "worktrees"), { recursive: true });
 
   playStartupSound();
-  startTmux();
+  startTmux(agents);
 }
