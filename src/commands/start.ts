@@ -169,7 +169,7 @@ function startTmux(): void {
 
 export async function startCommand(): Promise<void> {
   if (!existsSync(join(process.cwd(), ".git"))) {
-    console.error("✗ mdless start must be run inside a git repository.");
+    console.error("✗ mdless work must be run inside a git repository.");
     process.exit(1);
   }
 

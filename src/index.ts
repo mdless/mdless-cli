@@ -29,7 +29,7 @@ const commands = [
     action: scanCommand,
   },
   {
-    name: "start",
+    name: "work",
     description: "Launch watcher/executor/reviewer agents in a tmux session",
     action: startCommand,
   },
