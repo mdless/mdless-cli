@@ -36,15 +36,15 @@ gh issue view <N>
 
 ### Step 3 — Review against this checklist
 
-| Aspect      | What to check                                                      |
-| ----------- | ------------------------------------------------------------------ |
-| Correctness | Does it actually solve the issue?                                  |
-| Scope       | Any changes unrelated to the issue?                                |
-| Bugs        | Obvious off-by-one, null derefs, missed error paths, broken types? |
-| Tests       | If similar code has tests, are there new/updated tests here?       |
-| Style       | Only flag clear violations of patterns in surrounding code.        |
+| Aspect      | What to check                                                                |
+| ----------- | ---------------------------------------------------------------------------- |
+| Correctness | Does it actually solve the issue?                                            |
+| Scope       | Any changes unrelated to the issue?                                          |
+| Bugs        | Obvious off-by-one, null derefs, missed error paths, broken types?           |
+| Tests       | If similar code has tests, are there new/updated tests here?                 |
+| Guidelines  | Read `CLAUDE.md` (and any nested ones). Flag clear violations of its rules.  |
 
-Do **not** nitpick.
+Do **not** review subjective style. Only flag what's explicitly documented in `CLAUDE.md` or what's an actual bug.
 
 ### Step 4 — Decide
 
