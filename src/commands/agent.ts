@@ -139,7 +139,7 @@ function formatStreamEvent(line: string): string | null {
       } else if (block.type === "tool_use") {
         const summary = summarizeToolInput(block.name, block.input);
         const color = toolColor(block.name);
-        out.push(`  ${color}▸${RESET} ${color}${block.name.padEnd(9)}${RESET}${summary}`);
+        out.push(`  ${color}▸${RESET} ${color}${block.name.padEnd(9)}${RESET} ${summary}`);
       } else if (block.type === "thinking" && block.thinking?.trim()) {
         out.push(`  ${DIM}${ITALIC}~ ${truncate(block.thinking, 200)}${RESET}`);
       }
