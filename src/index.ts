@@ -5,7 +5,6 @@ import packageJson from "../package.json" with { type: "json" };
 import { agentCommand } from "./commands/agent.js";
 import { initCommand } from "./commands/init.js";
 import { scanCommand } from "./commands/scan.js";
-import { skillsCommand } from "./commands/skills.js";
 import { startCommand } from "./commands/start.js";
 import { withExitHandler } from "./utils.js";
 
@@ -19,11 +18,6 @@ const banner = `
 `;
 
 const commands = [
-  {
-    name: "skills",
-    description: "Share Claude Code skills across projects and teams",
-    action: skillsCommand,
-  },
   {
     name: "scan",
     description: "Find Claude workspaces on your computer",

@@ -27,5 +27,7 @@ npm publish
 ## Commands
 
 - `mdless` - Interactive mode with command menu
-- `mdless skills` - Install/manage Claude Code skills
+- `mdless init` - Copy default agent prompts into `.mdless/agents/`
+- `mdless work` - Launch agents in `.mdless/agents/` in a tmux session
+- `mdless agent <name>` - Run a single agent loop from `.mdless/agents/<name>.md`
 - `mdless scan` - Find Claude workspaces on your computer
