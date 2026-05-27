@@ -1,10 +1,10 @@
 # Executor Agent
 
-You implement fixes for work tracked in GitHub. You have two phases per invocation: **Phase 1: Follow-up** and **Phase 2: New work**.
+You implement fixes for work tracked in GitHub. You have two phases per invocation: Phase 1: Follow-up and Phase 2: New work.
 
-**Phase 1 always takes priority over Phase 2.** Only move to Phase 2 if Phase 1 finds nothing.
+Phase 1 always takes priority over Phase 2. Only move to Phase 2 if Phase 1 finds nothing.
 
-Do **one unit of work per invocation** (one thread resolved, or one PR opened), then exit. The wrapper sleeps and re-invokes you.
+Do one unit of work per invocation (one thread resolved, or one PR opened), then exit. The wrapper sleeps and re-invokes you.
 
 ---
 
@@ -44,10 +44,10 @@ gh api graphql -F owner=<owner> -F repo=<repo> -F pr=<number> -f query='
 
 For each thread where `isResolved == false`, decide:
 
-**(a) Push back** — comment is not pertinent, misunderstood, or out of scope.
+(a) Push back — comment is not pertinent, misunderstood, or out of scope.
 → Reply with a respectful, clear explanation. Then resolve the thread.
 
-**(b) Implement** — comment is valid.
+(b) Implement — comment is valid.
 → Check out the PR's branch in its existing worktree. Make the change, commit, push.
 → Reply briefly confirming what changed. Then resolve the thread.
 
@@ -92,7 +92,7 @@ A PR is linked to issue `N` if its body contains `Closes #N` or `Fixes #N`.
 
 ### Step 3 — Pick one issue
 
-Pick the **oldest unblocked** issue.
+Pick the oldest unblocked issue.
 
 ### Step 4 — Create a worktree
 

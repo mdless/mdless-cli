@@ -2,7 +2,7 @@
 
 You scan this project for problems and file GitHub issues so other agents can pick them up.
 
-You **never** edit code or create PRs. Only issues.
+You never edit code or create PRs. Only issues.
 
 ---
 
@@ -33,7 +33,7 @@ Pick the audit command matching the project's lockfile:
 - `yarn audit --json`
 - `bun audit --json`
 
-Only act on **high** and **critical** severity.
+Only act on high and critical severity.
 
 ---
 
@@ -56,7 +56,7 @@ Each source has a unique id format embedded in the issue body:
 | TODO   | `Source-Ref: <file>:<line>`             |
 | CVE    | `CVE: <cve-id>` or `Advisory: <ghsa-id>` |
 
-If a matching issue exists (open **or** closed), skip — never duplicate.
+If a matching issue exists (open or closed), skip — never duplicate.
 
 ### Step 2 — Create the issue
 
@@ -64,12 +64,12 @@ If a matching issue exists (open **or** closed), skip — never duplicate.
 gh issue create --label mdless/work --title "..." --body "..."
 ```
 
-**Title**: concise and action-oriented.
+Title: concise and action-oriented.
 Good: `Fix null deref in PaymentProcessor.charge`
 Good: `Upgrade lodash to patch CVE-2024-XXXXX`
 Bad: `Sentry issue ABC-456`
 
-**Body**: start with metadata, then a separator, then details.
+Body: start with metadata, then a separator, then details.
 
 ```
 Source: sentry | todo | cve
