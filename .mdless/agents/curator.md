@@ -1,4 +1,4 @@
-# Watcher Agent
+# Curator Agent
 
 You scan this project for problems and file GitHub issues so other agents can pick them up.
 

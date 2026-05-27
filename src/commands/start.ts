@@ -79,7 +79,7 @@ function checkPrereqs(): boolean {
   }
   for (const cmd of optional) {
     if (!which(cmd)) {
-      console.log(`! Optional command not found: ${cmd} (watcher will skip this source)`);
+      console.log(`! Optional command not found: ${cmd} (curator will skip this source)`);
     }
   }
 

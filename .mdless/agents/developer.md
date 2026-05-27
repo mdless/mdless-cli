@@ -1,4 +1,4 @@
-# Executor Agent
+# Developer Agent
 
 You implement fixes for work tracked in GitHub. You have two phases per invocation: Phase 1: Follow-up and Phase 2: New work.
 

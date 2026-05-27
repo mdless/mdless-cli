@@ -2,12 +2,7 @@ import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, createWriteStream } from "node:fs";
 import { join } from "node:path";
 
-const DEFAULT_SLEEP_SECONDS: Record<string, number> = {
-  watcher: 300,
-  executor: 60,
-  reviewer: 120,
-};
-const FALLBACK_SLEEP_SECONDS = 60;
+const SLEEP_SECONDS = 60;
 
 function timestamp(): string {
   const d = new Date();
@@ -52,18 +47,10 @@ const TOOL_COLORS: Record<string, string> = {
   Task: MAGENTA_PURPLE,
 };
 
-const AGENT_COLORS: Record<string, string> = {
-  watcher: LAVENDER,
-  executor: VIOLET,
-  reviewer: MAGENTA_PURPLE,
-};
+const AGENT_COLOR = VIOLET;
 
 function toolColor(name: string): string {
   return TOOL_COLORS[name] ?? VIOLET;
-}
-
-function agentColor(name: string): string {
-  return AGENT_COLORS[name] ?? VIOLET;
 }
 
 function truncate(s: string, n: number): string {
@@ -240,16 +227,13 @@ function sleep(seconds: number): Promise<void> {
 
 export async function agentCommand(name: string): Promise<void> {
   const prompt = loadPrompt(name);
-  const sleepSeconds =
-    Number(process.env.MDLESS_SLEEP) ||
-    DEFAULT_SLEEP_SECONDS[name] ||
-    FALLBACK_SLEEP_SECONDS;
+  const sleepSeconds = Number(process.env.MDLESS_SLEEP) || SLEEP_SECONDS;
 
   const logDir = join(process.cwd(), ".mdless", "logs");
   mkdirSync(logDir, { recursive: true });
   const logStream = createWriteStream(join(logDir, `${name}.log`), { flags: "a" });
 
-  const titleColor = agentColor(name);
+  const titleColor = AGENT_COLOR;
   const banner =
     `\n${titleColor}${BOLD}  ✦ mdless · ${name}${RESET}\n` +
     `${DIM}  ${"─".repeat(40)}${RESET}\n` +

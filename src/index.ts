@@ -82,7 +82,7 @@ for (const cmd of commands) {
 
 program
   .command("agent <name>")
-  .description("Run a single agent loop (watcher | executor | reviewer)")
+  .description("Run a single agent loop (curator | developer | reviewer)")
   .action(agentCommand);
 
 // If no arguments provided, show interactive mode
