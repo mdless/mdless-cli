@@ -1,6 +1,6 @@
 {
   "name": "@mdless/cli",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Mind less, ship more. Agent loops for Claude Code projects.",
   "type": "module",
   "bin": {
