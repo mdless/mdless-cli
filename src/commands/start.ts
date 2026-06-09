@@ -13,18 +13,6 @@ import { initCommand } from "./init.js";
 import { withExitHandler } from "../utils.js";
 
 const SESSION_PREFIX = "mdless";
-const LABELS: Array<{ name: string; color: string; description: string }> = [
-  {
-    name: "mdless/work",
-    color: "0E8A16",
-    description: "Tracked by the mdless agent system",
-  },
-  {
-    name: "mdless/approved",
-    color: "5319E7",
-    description: "Approved via mdless",
-  },
-];
 
 function which(cmd: string): boolean {
   const result = spawnSync("which", [cmd], { stdio: "ignore" });
@@ -86,30 +74,6 @@ function checkPrereqs(): boolean {
   }
 
   return true;
-}
-
-function ensureLabels(): void {
-  for (const label of LABELS) {
-    const result = spawnSync(
-      "gh",
-      [
-        "label",
-        "create",
-        label.name,
-        "--color",
-        label.color,
-        "--description",
-        label.description,
-        "--force",
-      ],
-      { stdio: "ignore" },
-    );
-    if (result.status === 0) {
-      console.log(`✓ label ${label.name}`);
-    } else {
-      console.log(`! could not create label ${label.name} (continuing)`);
-    }
-  }
 }
 
 const GITIGNORE_ENTRIES = [".mdless/worktrees/", ".mdless/logs/"];
@@ -213,7 +177,6 @@ export async function startCommand(): Promise<void> {
     process.exit(1);
   }
 
-  ensureLabels();
   ensureGitignore();
   mkdirSync(join(process.cwd(), ".mdless", "logs"), { recursive: true });
   mkdirSync(join(process.cwd(), ".mdless", "worktrees"), { recursive: true });

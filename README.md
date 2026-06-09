@@ -28,23 +28,23 @@ each file becomes a looping Claude Code agent.
 ```
 .mdless/
 └── agents/
-    ├── curator.md     →  agent "curator"
-    ├── developer.md   →  agent "developer"
-    └── reviewer.md    →  agent "reviewer"
+    └── orchestrator.md   →  agent "orchestrator"
 ```
 
 - One markdown file = one agent.
-- The **file name is the agent name** (`reviewer.md` → `reviewer`).
+- The **file name is the agent name** (`orchestrator.md` → `orchestrator`).
 - The file contents are the agent's prompt — write whatever instructions you want.
 
-Get started with the bundled defaults:
+Get started with the bundled default:
 
 ```bash
 mdless init
 ```
 
-This copies a few example prompts into `.mdless/agents/`. Edit them, rename them,
-add your own — anything in that folder counts as an agent.
+This copies the default `orchestrator` prompt into `.mdless/agents/` — a single
+coordinator that drains a GitHub-backed pipeline (file issues, implement, review,
+fix, remediate) by spawning ephemeral workers. Edit it, rename it, or add your
+own files — anything in that folder counts as an agent.
 
 ## 🚀 Running agents
 
