@@ -16,6 +16,10 @@ npm link
 
 After making changes, test by running `mdless` in any terminal - changes are reflected immediately.
 
+### Documentation
+
+Always update `README.md` after changing the code, so the docs and behavior stay in sync.
+
 ### Releasing
 
 ```bash

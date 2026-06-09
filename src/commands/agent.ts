@@ -230,7 +230,6 @@ export async function agentCommand(name: string): Promise<void> {
   playStartupSound();
 
   const prompt = loadPrompt(name);
-  const sleepSeconds = Number(process.env.MDLESS_SLEEP) || SLEEP_SECONDS;
 
   const logDir = join(process.cwd(), ".mdless", "logs");
   mkdirSync(logDir, { recursive: true });
@@ -240,7 +239,7 @@ export async function agentCommand(name: string): Promise<void> {
   const banner =
     `\n${titleColor}${BOLD}  ✦ mdless · ${name}${RESET}\n` +
     `${DIM}  ${"─".repeat(40)}${RESET}\n` +
-    `${DIM}  loop every ${sleepSeconds}s · logs in .mdless/logs/${name}.log${RESET}\n`;
+    `${DIM}  loop every ${SLEEP_SECONDS}s · logs in .mdless/logs/${name}.log${RESET}\n`;
   process.stdout.write(banner);
   logStream.write(banner);
 
@@ -256,10 +255,10 @@ export async function agentCommand(name: string): Promise<void> {
 
     await runClaude(prompt, logStream);
 
-    const footer = `${DIM}  sleeping ${sleepSeconds}s…${RESET}\n`;
+    const footer = `${DIM}  sleeping ${SLEEP_SECONDS}s…${RESET}\n`;
     process.stdout.write(footer);
     logStream.write(footer);
 
-    await sleep(sleepSeconds);
+    await sleep(SLEEP_SECONDS);
   }
 }
