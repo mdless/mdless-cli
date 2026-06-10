@@ -178,6 +178,16 @@ function formatStreamEvent(line: string): string | null {
   return null;
 }
 
+// Prefix every non-empty line with a dim HH:MM:SS gutter, leaving blank
+// spacer lines untouched so the layout stays readable.
+function withTimestamps(text: string): string {
+  const gutter = `${DIM}${timestamp()}${RESET} `;
+  return text
+    .split("\n")
+    .map((line) => (line.length ? gutter + line : line))
+    .join("\n");
+}
+
 function runClaude(prompt: string, logStream: NodeJS.WritableStream): Promise<number> {
   return new Promise((resolve) => {
     const child = spawn(
@@ -203,8 +213,9 @@ function runClaude(prompt: string, logStream: NodeJS.WritableStream): Promise<nu
         if (!line.trim()) continue;
         const formatted = formatStreamEvent(line);
         if (formatted) {
-          process.stdout.write(formatted);
-          logStream.write(formatted);
+          const stamped = withTimestamps(formatted);
+          process.stdout.write(stamped);
+          logStream.write(stamped);
         }
       }
     });
