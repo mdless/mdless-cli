@@ -4,7 +4,6 @@ import { select } from "@inquirer/prompts";
 import packageJson from "../package.json" with { type: "json" };
 import { agentCommand } from "./commands/agent.js";
 import { initCommand } from "./commands/init.js";
-import { startCommand } from "./commands/start.js";
 import { withExitHandler } from "./utils.js";
 
 const banner = `
@@ -21,11 +20,6 @@ const commands = [
     name: "init",
     description: "Copy the default agent prompts into .mdless/agents/",
     action: initCommand,
-  },
-  {
-    name: "work",
-    description: "Launch the agents in .mdless/agents/ in a tmux session",
-    action: startCommand,
   },
 ] as const;
 
@@ -70,8 +64,15 @@ for (const cmd of commands) {
 
 program
   .command("agent <name>")
-  .description("Run a single agent on repeat — reads the prompt from .mdless/agents/<name>.md")
-  .action(agentCommand);
+  .description("Run a single agent — reads the prompt from .mdless/agents/<name>.md")
+  .option(
+    "--loop [count]",
+    "Run the agent on repeat — forever, or <count> times if given",
+    (v) => parseInt(v, 10),
+  )
+  .action((name: string, options: { loop?: boolean | number }) =>
+    agentCommand(name, options),
+  );
 
 // If no arguments provided, show interactive mode
 if (process.argv.length <= 2) {

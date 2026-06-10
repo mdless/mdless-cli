@@ -23,7 +23,7 @@ npm install -g @mdless/cli
 ## 🧠 The idea
 
 An **agent is just a markdown file**. Drop your prompts into `.mdless/agents/` and
-each file becomes a looping Claude Code agent.
+each file becomes a Claude Code agent you can run once or on a loop.
 
 ```
 .mdless/
@@ -48,43 +48,41 @@ own files — anything in that folder counts as an agent.
 
 ## 🚀 Running agents
 
-#### Run a single agent
+#### Run an agent once
 
 ```bash
 mdless agent <name>
 ```
 
-Runs the agent in `.mdless/agents/<name>.md` on a loop: it executes Claude Code,
-waits, then runs again. For example, `mdless agent reviewer` loops
-`.mdless/agents/reviewer.md`.
+Runs the agent in `.mdless/agents/<name>.md` a single time. For example,
+`mdless agent reviewer` runs `.mdless/agents/reviewer.md` once and exits.
 
-Logs are written to `.mdless/logs/<name>.log`. Stop with `Ctrl-C`.
-
-#### Run every agent at once (tmux)
+#### Run an agent on a loop
 
 ```bash
-mdless work
+mdless agent <name> --loop
 ```
 
-Discovers every prompt in `.mdless/agents/` and launches each one as its own
-looping agent inside a single tmux session, split side by side.
+Runs the agent on repeat: it executes Claude Code, waits, then runs again,
+indefinitely. Stop with `Ctrl-C`.
 
-- Detach from the session: `Ctrl-b d`
-- Re-attach later: just run `mdless work` again
-- Kill everything: `tmux kill-session -t mdless-<repo>`
+Pass a count to cap the number of runs:
 
-`mdless work` must be run inside a git repository and needs `tmux`, `gh`
-(authenticated), and `claude` available on your `PATH`. Missing tools are
-installed automatically where possible.
+```bash
+mdless agent <name> --loop 2   # run twice, then exit
+```
+
+Logs are written to `.mdless/logs/<name>.log`.
 
 ## 📋 Command reference
 
-| Command               | What it does                                             |
-| --------------------- | ------------------------------------------------------- |
-| `mdless`              | Interactive menu                                         |
-| `mdless init`         | Copy the default agent prompts into `.mdless/agents/`   |
-| `mdless agent <name>` | Loop a single agent from `.mdless/agents/<name>.md`     |
-| `mdless work`         | Loop every agent in `.mdless/agents/` in a tmux session |
+| Command                        | What it does                                            |
+| ------------------------------ | ------------------------------------------------------- |
+| `mdless`                       | Interactive menu                                        |
+| `mdless init`                  | Copy the default agent prompts into `.mdless/agents/`   |
+| `mdless agent <name>`          | Run a single agent once from `.mdless/agents/<name>.md` |
+| `mdless agent <name> --loop`   | Run the agent on repeat, forever                        |
+| `mdless agent <name> --loop <n>` | Run the agent `<n>` times, then exit                  |
 
 ## 📄 License
 

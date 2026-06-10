@@ -237,7 +237,25 @@ function sleep(seconds: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }
 
-export async function agentCommand(name: string): Promise<void> {
+export interface AgentOptions {
+  // undefined → no --loop (run once)
+  // true      → --loop with no count (run forever)
+  // number    → --loop <count> (run that many times)
+  loop?: boolean | number;
+}
+
+export async function agentCommand(name: string, options: AgentOptions = {}): Promise<void> {
+  const loop = options.loop;
+
+  if (typeof loop === "number" && (!Number.isInteger(loop) || loop < 1)) {
+    console.error(`✗ --loop count must be a positive integer (got ${loop}).`);
+    process.exit(1);
+  }
+
+  // How many times to run: once with no --loop, the given count with
+  // --loop <count>, unbounded with a bare --loop.
+  const maxRuns = loop === undefined ? 1 : typeof loop === "number" ? loop : Infinity;
+
   playStartupSound();
 
   const prompt = loadPrompt(name);
@@ -246,11 +264,13 @@ export async function agentCommand(name: string): Promise<void> {
   mkdirSync(logDir, { recursive: true });
   const logStream = createWriteStream(join(logDir, `${name}.log`), { flags: "a" });
 
+  const runsLabel =
+    maxRuns === Infinity ? `loop every ${SLEEP_SECONDS}s` : `${maxRuns} run${maxRuns === 1 ? "" : "s"}`;
   const titleColor = AGENT_COLOR;
   const banner =
     `\n${titleColor}${BOLD}  ✦ mdless · ${name}${RESET}\n` +
     `${DIM}  ${"─".repeat(40)}${RESET}\n` +
-    `${DIM}  loop every ${SLEEP_SECONDS}s · logs in .mdless/logs/${name}.log${RESET}\n`;
+    `${DIM}  ${runsLabel} · logs in .mdless/logs/${name}.log${RESET}\n`;
   process.stdout.write(banner);
   logStream.write(banner);
 
@@ -259,12 +279,15 @@ export async function agentCommand(name: string): Promise<void> {
     process.exit(0);
   });
 
-  while (true) {
+  for (let run = 1; run <= maxRuns; run++) {
     const header = `\n${DIM}── ${timestamp()} ─────────────────────────────${RESET}\n`;
     process.stdout.write(header);
     logStream.write(header);
 
     await runClaude(prompt, logStream);
+
+    const isLast = run >= maxRuns;
+    if (isLast) break;
 
     const footer = `${DIM}  sleeping ${SLEEP_SECONDS}s…${RESET}\n`;
     process.stdout.write(footer);

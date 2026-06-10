@@ -60,5 +60,5 @@ export async function initCommand(): Promise<void> {
   console.log(
     `\n${copied} copied, ${skipped} skipped → .mdless/agents/`,
   );
-  console.log(`Edit those files to customize prompts, then run \`mdless work\`.`);
+  console.log(`Edit those files to customize prompts, then run \`mdless agent <name>\`.`);
 }

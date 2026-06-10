@@ -32,5 +32,5 @@ npm publish
 
 - `mdless` - Interactive mode with command menu
 - `mdless init` - Copy default agent prompts into `.mdless/agents/`
-- `mdless work` - Launch agents in `.mdless/agents/` in a tmux session
-- `mdless agent <name>` - Run a single agent loop from `.mdless/agents/<name>.md`
+- `mdless agent <name>` - Run the agent in `.mdless/agents/<name>.md` once
+- `mdless agent <name> --loop` - Run the agent on repeat forever (`--loop <n>` runs it `<n>` times)
