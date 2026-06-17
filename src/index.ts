@@ -2,7 +2,7 @@
 import { Command } from "commander";
 import { select } from "@inquirer/prompts";
 import packageJson from "../package.json" with { type: "json" };
-import { agentCommand } from "./commands/agent.js";
+import { agentCommand, listAgents } from "./commands/agent.js";
 import { initCommand } from "./commands/init.js";
 import { withExitHandler } from "./utils.js";
 
@@ -63,16 +63,29 @@ for (const cmd of commands) {
 }
 
 program
-  .command("agent <name>")
+  .command("agent [name]")
   .description("Run a single agent — reads the prompt from .mdless/agents/<name>.md")
   .option(
     "--loop [count]",
     "Run the agent on repeat — forever, or <count> times if given",
     (v) => parseInt(v, 10),
   )
-  .action((name: string, options: { loop?: boolean | number }) =>
-    agentCommand(name, options),
-  );
+  .action(async (name: string | undefined, options: { loop?: boolean | number }) => {
+    if (!name) {
+      const agents = listAgents();
+      if (agents.length === 0) {
+        console.error("✗ no agents found — run `mdless init` to create the default prompts.");
+        process.exit(1);
+      }
+      name = await withExitHandler(
+        select({
+          message: "Which agent would you like to run?",
+          choices: agents.map((a) => ({ name: a, value: a })),
+        }),
+      );
+    }
+    agentCommand(name, options);
+  });
 
 // If no arguments provided, show interactive mode
 if (process.argv.length <= 2) {

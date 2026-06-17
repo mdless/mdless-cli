@@ -32,23 +32,22 @@ Reflect on what happened this session. If you encountered any non-obvious proble
 Each file should cover one specific finding: what the problem was, what you tried, and what worked. Skip task-specific details — only save knowledge that is reusable across sessions.
 `;
 
+export function listAgents(cwd = process.cwd()): string[] {
+  const agentsDir = join(cwd, ".mdless", "agents");
+  if (!existsSync(agentsDir)) return [];
+  return readdirSync(agentsDir)
+    .filter((f) => f.endsWith(".md"))
+    .map((f) => f.slice(0, -3));
+}
+
 function loadPrompt(name: string): string {
   const agentsDir = join(process.cwd(), ".mdless", "agents");
   const promptPath = join(agentsDir, `${name}.md`);
   if (!existsSync(promptPath)) {
     let msg = `✗ no prompt found at ${promptPath}\n  run \`mdless init\` to create the default prompts.`;
-    if (existsSync(agentsDir)) {
-      const all = readdirSync(agentsDir)
-        .filter((f) => f.endsWith(".md"))
-        .map((f) => f.slice(0, -3));
-      const agents = all.filter((a) => !a.startsWith("_"));
-      const subagents = all.filter((a) => a.startsWith("_"));
-      if (agents.length > 0) {
-        msg += `\n\n  available agents:\n${agents.map((a) => `    mdless agent ${a}`).join("\n")}`;
-      }
-      if (subagents.length > 0) {
-        msg += `\n\n  subagents (called internally):\n${subagents.map((a) => `    ${a}`).join("\n")}`;
-      }
+    const agents = listAgents();
+    if (agents.length > 0) {
+      msg += `\n\n  available agents:\n${agents.map((a) => `    mdless agent ${a}`).join("\n")}`;
     }
     console.error(msg);
     process.exit(1);
