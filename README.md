@@ -27,13 +27,29 @@ each file becomes a Claude Code agent you can run once or on a loop.
 
 ```
 .mdless/
-└── agents/
-    └── orchestrator.md   →  agent "orchestrator"
+├── agents/
+│   └── orchestrator.md   →  agent "orchestrator"
+└── learnings/
+    └── connect-to-sentry.md   →  persisted know-how
 ```
 
 - One markdown file = one agent.
 - The **file name is the agent name** (`orchestrator.md` → `orchestrator`).
 - The file contents are the agent's prompt — write whatever instructions you want.
+
+### Learnings
+
+Every agent automatically reads `.mdless/learnings/` at the start of each session
+and is prompted to save new findings there before finishing. This lets the agent
+accumulate codebase-specific knowledge across sessions — workarounds, environment
+quirks, scripts that work around broken MCP servers, and anything else it discovers.
+
+Create a learning manually or let the agent write its own:
+
+```
+.mdless/learnings/connect-to-sentry.md
+.mdless/learnings/run-migrations.md
+```
 
 Get started with the bundled default:
 

@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, createWriteStream } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, createWriteStream } from "node:fs";
 import { join } from "node:path";
 import { playStartupSound } from "../playStartupSound.js";
 
@@ -10,15 +10,51 @@ function timestamp(): string {
   return d.toTimeString().slice(0, 8);
 }
 
+const LEARNINGS_PREAMBLE = `\
+## Session setup
+
+Before doing anything else, check if \`.mdless/learnings/\` exists in the current working directory. If it does, read every file in it — these are notes from past agent sessions documenting workarounds, environment quirks, and solutions to problems you are likely to encounter again. Use them to skip mistakes and avoid re-solving known issues.
+
+---
+
+`;
+
+const LEARNINGS_POSTAMBLE = `
+
+---
+
+## Before you finish
+
+Reflect on what happened this session. If you encountered any non-obvious problems, workarounds, API quirks, environment issues, or solutions that a future agent session in this codebase would benefit from knowing, save each one as a concise note:
+
+  .mdless/learnings/<descriptive-slug>.md
+
+Each file should cover one specific finding: what the problem was, what you tried, and what worked. Skip task-specific details — only save knowledge that is reusable across sessions.
+`;
+
 function loadPrompt(name: string): string {
-  const promptPath = join(process.cwd(), ".mdless", "agents", `${name}.md`);
+  const agentsDir = join(process.cwd(), ".mdless", "agents");
+  const promptPath = join(agentsDir, `${name}.md`);
   if (!existsSync(promptPath)) {
-    console.error(
-      `✗ no prompt found at ${promptPath}\n  run \`mdless init\` to create the default prompts.`,
-    );
+    let msg = `✗ no prompt found at ${promptPath}\n  run \`mdless init\` to create the default prompts.`;
+    if (existsSync(agentsDir)) {
+      const all = readdirSync(agentsDir)
+        .filter((f) => f.endsWith(".md"))
+        .map((f) => f.slice(0, -3));
+      const agents = all.filter((a) => !a.startsWith("_"));
+      const subagents = all.filter((a) => a.startsWith("_"));
+      if (agents.length > 0) {
+        msg += `\n\n  available agents:\n${agents.map((a) => `    mdless agent ${a}`).join("\n")}`;
+      }
+      if (subagents.length > 0) {
+        msg += `\n\n  subagents (called internally):\n${subagents.map((a) => `    ${a}`).join("\n")}`;
+      }
+    }
+    console.error(msg);
     process.exit(1);
   }
-  return readFileSync(promptPath, "utf8");
+  const body = readFileSync(promptPath, "utf8");
+  return LEARNINGS_PREAMBLE + body + LEARNINGS_POSTAMBLE;
 }
 
 const RESET = "\x1b[0m";
@@ -256,9 +292,9 @@ export async function agentCommand(name: string, options: AgentOptions = {}): Pr
   // --loop <count>, unbounded with a bare --loop.
   const maxRuns = loop === undefined ? 1 : typeof loop === "number" ? loop : Infinity;
 
-  playStartupSound();
-
   const prompt = loadPrompt(name);
+
+  playStartupSound();
 
   const logDir = join(process.cwd(), ".mdless", "logs");
   mkdirSync(logDir, { recursive: true });
